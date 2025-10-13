@@ -45,7 +45,7 @@ routes.post("/login", async (req, res) => {
 
     res.status(200).json({
       message: "Login successful"
-      // jwt_token: optional
+      
     });
   } catch (err) {
     res.status(500).json({ status: false, message: err.message });
