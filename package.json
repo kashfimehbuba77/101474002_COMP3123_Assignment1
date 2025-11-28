@@ -1,9 +1,11 @@
 {
   "name": "comp3123-backend",
   "version": "1.0.0",
+  "description": "Backend API for COMP3123 Assignment using Express, MongoDB, and Vercel",
   "main": "api/index.js",
   "scripts": {
-    "start": "node api/index.js"
+    "start": "node api/index.js",
+    "dev": "nodemon api/index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -13,5 +15,8 @@
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }

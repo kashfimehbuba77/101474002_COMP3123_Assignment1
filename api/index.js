@@ -12,16 +12,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Lazy MongoDB connection (serverless-friendly)
+// MongoDB connection
 let isConnected = false;
 async function connectDB() {
   if (isConnected) return;
-  await mongoose.connect(process.env.DB_CONNECTION_STRING);
-  isConnected = true;
-  console.log("MongoDB Connected (Vercel)");
+  try {
+    await mongoose.connect(process.env.DB_CONNECTION_STRING);
+    isConnected = true;
+    console.log("MongoDB Connected");
+  } catch (err) {
+    console.error("MongoDB Connection Error:", err);
+  }
 }
 
-// Middleware to ensure DB connection before each request
+// Connect DB before processing each request (Vercel-friendly)
 app.use(async (req, res, next) => {
   await connectDB();
   next();
@@ -33,7 +37,18 @@ app.use("/api/v1/emp", employeesRoutes);
 
 // Root route
 app.get("/", (req, res) => {
-  res.send("Express Backend Running on Vercel");
+  res.send("Express Backend Running on Vercel & Local");
 });
 
+// ---------- LOCAL DEVELOPMENT ----------
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3001;
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Local server running at http://localhost:${PORT}`);
+    });
+  });
+}
+
+// ---------- EXPORT FOR VERCEL ----------
 module.exports = app;
