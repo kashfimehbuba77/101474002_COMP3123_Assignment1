@@ -1,14 +1,16 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
 const UserModel = require("../models/users");
 
 const routes = express.Router();
 
-// Signup
+// ==========================
+// SIGNUP
+// ==========================
 routes.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
+    // Check if email already exists
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
@@ -17,35 +19,48 @@ routes.post("/signup", async (req, res) => {
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = new UserModel({ username, email, password: hashedPassword });
+    // ❗ DO NOT HASH HERE — model does it automatically
+    const newUser = new UserModel({ username, email, password });
     const savedUser = await newUser.save();
 
     res.status(201).json({
       message: "User created successfully.",
-      user_id: savedUser._id
+      user_id: savedUser._id,
     });
   } catch (err) {
     res.status(500).json({ status: false, message: err.message });
   }
 });
 
-// Login
+// ==========================
+// LOGIN
+// ==========================
 routes.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await UserModel.findOne({ email });
-    if (!user) return res.status(401).json({ status: false, message: "Invalid username or password" });
+    if (!user)
+      return res.status(401).json({
+        status: false,
+        message: "Invalid username or password",
+      });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ status: false, message: "Invalid username or password" });
+    // Use the model's comparePassword method
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch)
+      return res.status(401).json({
+        status: false,
+        message: "Invalid username or password",
+      });
 
     res.status(200).json({
-      message: "Login successful"
-      
+      message: "Login successful!",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
     });
   } catch (err) {
     res.status(500).json({ status: false, message: err.message });
